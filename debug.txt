@@ -1,0 +1,10 @@
+当前工作目录: D:\code\code\c#\DesktopPet
+尝试的路径:
+- D:\code\code\c#\DesktopPet\Resources (存在: False)
+- D:\code\code\c#\DesktopPet\..\..\..\Pet.UI\Resources (存在: False)
+- D:\code\code\c#\DesktopPet\Pet.UI\bin\Debug\Resources (存在: True)
+- D:\code\code\c#\DesktopPet\Pet.UI\bin\Debug\Resources (存在: True)
+使用路径: D:\code\code\c#\DesktopPet\Pet.UI\bin\Debug\Resources
+检查图片: D:\code\code\c#\DesktopPet\Pet.UI\bin\Debug\Resources\Sit_Idle.png (存在: True)
+成功加载: D:\code\code\c#\DesktopPet\Pet.UI\bin\Debug\Resources\Sit_Idle.png
+总共加载了 1 帧动画
