@@ -47,6 +47,7 @@ namespace Pet.UI
             this.picPet.MouseDown += new System.Windows.Forms.MouseEventHandler(this.picPet_MouseDown);
             this.picPet.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picPet_MouseMove);
             this.picPet.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picPet_MouseUp);
+            this.picPet.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.picPet_MouseDoubleClick);
             // 
             // animationTimer
             // 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using Pet.BLL;
@@ -13,6 +14,8 @@ namespace Pet.UI
         private ContextMenuStrip _contextMenu;
         private BubbleForm _bubbleForm;
         private IDialogService _dialogService;
+        private IDoubleClickActionStrategy _currentDoubleClickStrategy;
+        private List<IDoubleClickActionStrategy> _availableStrategies;
 
         public PetForm()
         {
@@ -23,6 +26,7 @@ namespace Pet.UI
             _petCore.Position = this.Location;
             _petCore.ScreenBounds = Screen.PrimaryScreen.Bounds.Size;
 
+            InitializeDoubleClickStrategies(); // 初始化双击策略（必须在菜单之前）
             InitializeContextMenu(); // 初始化右键菜单
             InitializeBubble(); // 初始化气泡窗体
             InitializeScheduleReminder(); // 初始化日程提醒
@@ -61,6 +65,29 @@ namespace Pet.UI
             ToolStripMenuItem thunderShockItem = new ToolStripMenuItem("放电");
             thunderShockItem.Click += ThunderShockItem_Click;
             _contextMenu.Items.Add(thunderShockItem);
+
+            // 添加分隔线
+            _contextMenu.Items.Add(new ToolStripSeparator());
+
+            // 创建"双击功能"子菜单
+            ToolStripMenuItem doubleClickMenu = new ToolStripMenuItem("双击功能");
+
+            foreach (var strategy in _availableStrategies)
+            {
+                ToolStripMenuItem menuItem = new ToolStripMenuItem(strategy.Name);
+                menuItem.Tag = strategy; // 将策略实例存放在Tag中
+                menuItem.Click += DoubleClickStrategy_Click;
+
+                // 默认选中的策略打上勾
+                if (strategy == _currentDoubleClickStrategy)
+                {
+                    menuItem.Checked = true;
+                }
+
+                doubleClickMenu.DropDownItems.Add(menuItem);
+            }
+
+            _contextMenu.Items.Add(doubleClickMenu);
 
             // 添加分隔线
             _contextMenu.Items.Add(new ToolStripSeparator());
@@ -335,6 +362,57 @@ namespace Pet.UI
             _bubbleForm?.Close();
             _bubbleForm?.Dispose();
             base.OnFormClosed(e);
+        }
+
+        /// <summary>
+        /// 初始化双击策略
+        /// </summary>
+        private void InitializeDoubleClickStrategies()
+        {
+            _availableStrategies = new List<IDoubleClickActionStrategy>
+            {
+                new NoActionStrategy(),
+                new ScreenshotStrategy(),
+                new OpenWebsiteStrategy("https://github.com/", "打开GitHub"),
+                new OpenWebsiteStrategy("https://www.bilibili.com/", "打开哔哩哔哩"),
+                new OpenWebsiteStrategy("https://www.baidu.com/", "打开百度")
+                // 未来可以添加更多策略...
+            };
+
+            // 默认选择"无操作"
+            _currentDoubleClickStrategy = _availableStrategies[0];
+        }
+
+        /// <summary>
+        /// 双击事件处理
+        /// </summary>
+        private void picPet_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            // 执行当前配置的双击策略
+            _currentDoubleClickStrategy?.Execute();
+        }
+
+        /// <summary>
+        /// 双击策略菜单项点击事件处理
+        /// </summary>
+        private void DoubleClickStrategy_Click(object sender, EventArgs e)
+        {
+            // 取消所有菜单项的选中状态
+            var clickedItem = sender as ToolStripMenuItem;
+            if (clickedItem?.OwnerItem is ToolStripMenuItem parentMenu)
+            {
+                foreach (ToolStripMenuItem item in parentMenu.DropDownItems)
+                {
+                    item.Checked = false;
+                }
+            }
+
+            // 设置新的策略
+            if (clickedItem != null)
+            {
+                clickedItem.Checked = true;
+                _currentDoubleClickStrategy = clickedItem.Tag as IDoubleClickActionStrategy;
+            }
         }
     }
 }
