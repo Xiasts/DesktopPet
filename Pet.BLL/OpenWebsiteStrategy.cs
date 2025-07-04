@@ -14,6 +14,8 @@ namespace Pet.BLL
 
         public string Name => _displayName ?? $"打开网站 ({_url})";
 
+        public event Action<string, int> OnActionMessage;
+
         public OpenWebsiteStrategy(string url = "https://www.bilibili.com", string displayName = null)
         {
             _url = url;
@@ -30,11 +32,11 @@ namespace Pet.BLL
                     FileName = _url,
                     UseShellExecute = true
                 });
+                OnActionMessage?.Invoke($"皮卡！正在打开 {_displayName ?? _url}", 3000);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"无法打开网站：{ex.Message}", "错误", 
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                OnActionMessage?.Invoke($"皮卡...无法打开网站：{ex.Message}", 4000);
             }
         }
     }

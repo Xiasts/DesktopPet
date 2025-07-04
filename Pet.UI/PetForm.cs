@@ -375,9 +375,16 @@ namespace Pet.UI
                 new ScreenshotStrategy(),
                 new OpenWebsiteStrategy("https://github.com/", "打开GitHub"),
                 new OpenWebsiteStrategy("https://www.bilibili.com/", "打开哔哩哔哩"),
-                new OpenWebsiteStrategy("https://www.baidu.com/", "打开百度")
+                new OpenWebsiteStrategy("https://www.baidu.com/", "打开百度"),
+                new WeatherReporterStrategy() // 添加天气查询策略
                 // 未来可以添加更多策略...
             };
+
+            // 为所有策略订阅消息事件
+            foreach (var strategy in _availableStrategies)
+            {
+                strategy.OnActionMessage += (message, duration) => ShowBubble(message, duration);
+            }
 
             // 默认选择"无操作"
             _currentDoubleClickStrategy = _availableStrategies[0];

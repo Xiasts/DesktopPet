@@ -12,6 +12,8 @@ namespace Pet.BLL
     {
         public string Name => "截取全屏";
 
+        public event Action<string, int> OnActionMessage;
+
         public void Execute()
         {
             try
@@ -34,14 +36,12 @@ namespace Pet.BLL
                 // 释放资源
                 screenshot.Dispose();
 
-                // 显示成功提示
-                MessageBox.Show($"截图已保存到桌面！\n{filePath}", "截图成功", 
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // 通过事件显示成功提示
+                OnActionMessage?.Invoke($"皮卡！截图已保存到桌面！\n{fileName}", 5000);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"截图失败：{ex.Message}", "错误", 
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                OnActionMessage?.Invoke($"皮卡...截图失败：{ex.Message}", 4000);
             }
         }
     }

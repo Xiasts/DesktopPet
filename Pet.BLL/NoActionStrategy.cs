@@ -1,3 +1,5 @@
+using System;
+
 namespace Pet.BLL
 {
     /// <summary>
@@ -6,6 +8,8 @@ namespace Pet.BLL
     public class NoActionStrategy : IDoubleClickActionStrategy
     {
         public string Name => "无操作";
+
+        public event Action<string, int> OnActionMessage;
 
         public void Execute()
         {

@@ -1,3 +1,5 @@
+using System;
+
 namespace Pet.BLL
 {
     /// <summary>
@@ -14,5 +16,10 @@ namespace Pet.BLL
         /// 执行具体操作
         /// </summary>
         void Execute();
+
+        /// <summary>
+        /// 向UI层传递消息的事件
+        /// </summary>
+        event Action<string, int> OnActionMessage;
     }
 }
