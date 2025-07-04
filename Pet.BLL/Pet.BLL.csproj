@@ -52,6 +52,7 @@
     <Compile Include="AttachState.cs" />
     <Compile Include="CookieState.cs" />
     <Compile Include="PlayState.cs" />
+    <Compile Include="ThunderShockState.cs" />
     <Compile Include="PetCore.cs" />
     <Compile Include="ScheduleManager.cs" />
     <Compile Include="IDialogService.cs" />

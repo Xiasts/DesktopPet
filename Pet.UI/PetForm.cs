@@ -49,6 +49,22 @@ namespace Pet.UI
             // 添加分隔线
             _contextMenu.Items.Add(new ToolStripSeparator());
 
+            // 添加互动菜单项
+            ToolStripMenuItem feedItem = new ToolStripMenuItem("喂食");
+            feedItem.Click += FeedItem_Click;
+            _contextMenu.Items.Add(feedItem);
+
+            ToolStripMenuItem playItem = new ToolStripMenuItem("玩耍");
+            playItem.Click += PlayItem_Click;
+            _contextMenu.Items.Add(playItem);
+
+            ToolStripMenuItem thunderShockItem = new ToolStripMenuItem("放电");
+            thunderShockItem.Click += ThunderShockItem_Click;
+            _contextMenu.Items.Add(thunderShockItem);
+
+            // 添加分隔线
+            _contextMenu.Items.Add(new ToolStripSeparator());
+
             // 添加关于菜单项
             ToolStripMenuItem aboutItem = new ToolStripMenuItem("关于");
             aboutItem.Click += AboutItem_Click;
@@ -146,6 +162,30 @@ namespace Pet.UI
                     ProcessChatAsync(chatForm.UserInput);
                 }
             }
+        }
+
+        /// <summary>
+        /// 喂食菜单项点击事件
+        /// </summary>
+        private void FeedItem_Click(object sender, EventArgs e)
+        {
+            _petCore.TriggerEating();
+        }
+
+        /// <summary>
+        /// 玩耍菜单项点击事件
+        /// </summary>
+        private void PlayItem_Click(object sender, EventArgs e)
+        {
+            _petCore.TriggerPlaying();
+        }
+
+        /// <summary>
+        /// 放电菜单项点击事件
+        /// </summary>
+        private void ThunderShockItem_Click(object sender, EventArgs e)
+        {
+            _petCore.TriggerThunderShock();
         }
 
         /// <summary>

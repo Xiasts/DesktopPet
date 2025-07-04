@@ -162,6 +162,42 @@ namespace Pet.BLL
         }
 
         /// <summary>
+        /// 触发喂食状态 - 从右键菜单调用
+        /// </summary>
+        public void TriggerEating()
+        {
+            // 只有在非拖拽状态时才能触发
+            if (!IsInState<DragState>())
+            {
+                SetState(new CookieState());
+            }
+        }
+
+        /// <summary>
+        /// 触发玩耍状态 - 从右键菜单调用
+        /// </summary>
+        public void TriggerPlaying()
+        {
+            // 只有在非拖拽状态时才能触发
+            if (!IsInState<DragState>())
+            {
+                SetState(new PlayState());
+            }
+        }
+
+        /// <summary>
+        /// 触发放电状态 - 从右键菜单调用
+        /// </summary>
+        public void TriggerThunderShock()
+        {
+            // 只有在非拖拽状态时才能触发
+            if (!IsInState<DragState>())
+            {
+                SetState(new ThunderShockState());
+            }
+        }
+
+        /// <summary>
         /// 处理日程提醒事件
         /// </summary>
         /// <param name="schedule">到期的日程</param>
