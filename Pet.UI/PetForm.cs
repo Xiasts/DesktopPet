@@ -267,6 +267,22 @@ namespace Pet.UI
         }
 
         /// <summary>
+        /// 处理聊天请求（从双击策略触发）
+        /// </summary>
+        private void HandleChatRequest()
+        {
+            // 显示自定义对话输入窗体
+            using (var chatForm = new ChatForm())
+            {
+                if (chatForm.ShowDialog(this) == DialogResult.OK)
+                {
+                    // 异步处理对话
+                    ProcessChatAsync(chatForm.UserInput);
+                }
+            }
+        }
+
+        /// <summary>
         /// 异步处理用户对话
         /// </summary>
         /// <param name="userInput">用户输入</param>
@@ -276,6 +292,9 @@ namespace Pet.UI
             {
                 // 显示"思考中"的气泡，3秒后自动消失
                 ShowBubble("皮卡皮卡... 🤔\n(思考中)", 3000);
+
+                // 在思考时触发放电动作
+                _petCore.TriggerThunderShock();
 
                 // 获取AI回复
                 string response = await _dialogService.GetResponseAsync(userInput);
@@ -376,7 +395,8 @@ namespace Pet.UI
                 new OpenWebsiteStrategy("https://github.com/", "打开GitHub"),
                 new OpenWebsiteStrategy("https://www.bilibili.com/", "打开哔哩哔哩"),
                 new OpenWebsiteStrategy("https://www.baidu.com/", "打开百度"),
-                new WeatherReporterStrategy() // 添加天气查询策略
+                new WeatherReporterStrategy(), // 添加天气查询策略
+                new ChatStrategy() // 添加聊天策略
                 // 未来可以添加更多策略...
             };
 
@@ -384,6 +404,12 @@ namespace Pet.UI
             foreach (var strategy in _availableStrategies)
             {
                 strategy.OnActionMessage += (message, duration) => ShowBubble(message, duration);
+
+                // 如果是聊天策略，订阅聊天请求事件
+                if (strategy is ChatStrategy chatStrategy)
+                {
+                    chatStrategy.OnChatRequested += HandleChatRequest;
+                }
             }
 
             // 默认选择"无操作"

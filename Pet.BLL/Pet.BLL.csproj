@@ -65,6 +65,7 @@
     <Compile Include="NoActionStrategy.cs" />
     <Compile Include="WeatherModels.cs" />
     <Compile Include="WeatherReporterStrategy.cs" />
+    <Compile Include="ChatStrategy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
