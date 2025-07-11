@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 using Pet.BLL;
 
 namespace Pet.UI
@@ -17,6 +18,82 @@ namespace Pet.UI
         private IDoubleClickActionStrategy _currentDoubleClickStrategy;
         private List<IDoubleClickActionStrategy> _availableStrategies;
 
+        #region Win32 API for Layered Windows
+
+        // Win32 常量
+        private const int GWL_EXSTYLE = -20;
+        private const int WS_EX_LAYERED = 0x80000;
+        private const int LWA_ALPHA = 0x2;
+        private const int ULW_ALPHA = 0x2;
+
+        // Win32 结构体
+        [StructLayout(LayoutKind.Sequential)]
+        private struct Win32Point
+        {
+            public int X;
+            public int Y;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct Win32Size
+        {
+            public int Width;
+            public int Height;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private struct BLENDFUNCTION
+        {
+            public byte BlendOp;
+            public byte BlendFlags;
+            public byte SourceConstantAlpha;
+            public byte AlphaFormat;
+        }
+
+        // Win32 API 函数声明
+        [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
+        private static extern IntPtr GetDC(IntPtr hWnd);
+
+        [DllImport("user32.dll", ExactSpelling = true)]
+        private static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+
+        [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
+        private static extern IntPtr CreateCompatibleDC(IntPtr hDC);
+
+        [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
+        private static extern bool DeleteDC(IntPtr hdc);
+
+        [DllImport("gdi32.dll", ExactSpelling = true)]
+        private static extern IntPtr SelectObject(IntPtr hDC, IntPtr hObject);
+
+        [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
+        private static extern bool DeleteObject(IntPtr hObject);
+
+        [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
+        private static extern bool UpdateLayeredWindow(IntPtr hwnd, IntPtr hdcDst, ref Win32Point pptDst, ref Win32Size psize, IntPtr hdcSrc, ref Win32Point pptSrc, int crKey, ref BLENDFUNCTION pblend, int dwFlags);
+
+        [DllImport("user32.dll")]
+        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        [DllImport("user32.dll")]
+        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        #endregion
+
+        /// <summary>
+        /// 重写CreateParams属性，添加分层窗口支持
+        /// </summary>
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                // 添加 WS_EX_LAYERED 扩展样式
+                cp.ExStyle |= WS_EX_LAYERED;
+                return cp;
+            }
+        }
+
         public PetForm()
         {
             InitializeComponent();
@@ -31,6 +108,62 @@ namespace Pet.UI
             InitializeBubble(); // 初始化气泡窗体
             InitializeScheduleReminder(); // 初始化日程提醒
             InitializeDialogService(); // 初始化对话服务
+        }
+
+        /// <summary>
+        /// 使用分层窗口API在指定位置更新窗体图像，支持Alpha透明
+        /// </summary>
+        /// <param name="bitmap">带有Alpha通道的图像</param>
+        /// <param name="targetLocation">窗体要显示的目标屏幕坐标</param>
+        public void SetBitmap(Bitmap bitmap, System.Drawing.Point targetLocation)
+        {
+            if (bitmap.PixelFormat != System.Drawing.Imaging.PixelFormat.Format32bppArgb)
+            {
+                // 如果不是32位带Alpha通道的格式，需要转换
+                var convertedBitmap = new Bitmap(bitmap.Width, bitmap.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                using (Graphics g = Graphics.FromImage(convertedBitmap))
+                {
+                    g.DrawImage(bitmap, 0, 0);
+                }
+                bitmap = convertedBitmap;
+            }
+
+            // 1. 获取屏幕DC和内存DC
+            IntPtr screenDc = GetDC(IntPtr.Zero);
+            IntPtr memDc = CreateCompatibleDC(screenDc);
+            IntPtr hBitmap = IntPtr.Zero;
+            IntPtr oldBitmap = IntPtr.Zero;
+
+            try
+            {
+                // 2. 将我们的Bitmap选入内存DC
+                hBitmap = bitmap.GetHbitmap(Color.FromArgb(0)); // 从Bitmap创建GDI句柄
+                oldBitmap = SelectObject(memDc, hBitmap);
+
+                // 3. 定义窗口的混合函数和参数
+                Win32Size size = new Win32Size { Width = bitmap.Width, Height = bitmap.Height };
+                Win32Point pointSource = new Win32Point { X = 0, Y = 0 };
+                Win32Point topPos = new Win32Point { X = targetLocation.X, Y = targetLocation.Y };
+                BLENDFUNCTION blend = new BLENDFUNCTION();
+                blend.BlendOp = 0x00; // AC_SRC_OVER
+                blend.BlendFlags = 0;
+                blend.SourceConstantAlpha = 255; // 完全不透明
+                blend.AlphaFormat = 0x01; // AC_SRC_ALPHA，表示使用源图像的Alpha通道
+
+                // 4. 调用核心API函数，更新窗口
+                UpdateLayeredWindow(this.Handle, screenDc, ref topPos, ref size, memDc, ref pointSource, 0, ref blend, ULW_ALPHA);
+            }
+            finally
+            {
+                // 5. 释放所有GDI资源
+                ReleaseDC(IntPtr.Zero, screenDc);
+                if (hBitmap != IntPtr.Zero)
+                {
+                    SelectObject(memDc, oldBitmap);
+                    DeleteObject(hBitmap);
+                }
+                DeleteDC(memDc);
+            }
         }
 
         /// <summary>
@@ -102,37 +235,43 @@ namespace Pet.UI
             exitItem.Click += ExitItem_Click;
             _contextMenu.Items.Add(exitItem);
 
-            // 将右键菜单绑定到PictureBox
-            picPet.ContextMenuStrip = _contextMenu;
+            // 将右键菜单绑定到窗体
+            this.ContextMenuStrip = _contextMenu;
         }
 
         private void animationTimer_Tick(object sender, EventArgs e)
         {
-            // 1. 更新BLL中的状态
+            // 1. 更新业务逻辑层，BLL会根据当前状态计算出新的位置
             _petCore.Update();
 
             // 2. 从BLL获取当前要显示的图片
             Image petImage = _petCore.GetCurrentImage();
 
-            // 3. 将图片显示在UI上
-            picPet.Image = petImage;
-
-            // 4. 让窗体大小自适应图片大小
-            this.ClientSize = picPet.Size;
-
-            // 5. 同步位置（从BLL获取更新后的位置）
-            if (this.Location != _petCore.Position)
+            if (petImage != null)
             {
-                this.Location = _petCore.Position;
+                // 3. 让窗体自身的物理位置与BLL保持一致
+                if (this.Location != _petCore.Position)
+                {
+                    this.Location = _petCore.Position;
+                }
+
+                // 4. 更新窗体大小以适应图片
+                if (this.ClientSize != petImage.Size)
+                {
+                    this.ClientSize = petImage.Size;
+                }
+
+                // 5. 调用新的绘制方法，使用BLL提供的最终位置和图片进行绘制
+                SetBitmap(new Bitmap(petImage), _petCore.Position);
             }
         }
 
-        private void picPet_MouseDown(object sender, MouseEventArgs e)
+        private void PetForm_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
                 _isDragging = true;
-                _startPoint = new Point(e.X, e.Y);
+                _startPoint = new System.Drawing.Point(e.X, e.Y);
 
                 // 如果当前是吸附状态，先脱离吸附
                 _petCore.DetachFromEdge();
@@ -142,20 +281,20 @@ namespace Pet.UI
             }
         }
 
-        private void picPet_MouseMove(object sender, MouseEventArgs e)
+        private void PetForm_MouseMove(object sender, MouseEventArgs e)
         {
             if (_isDragging)
             {
-                Point p = PointToScreen(e.Location);
-                Point newLocation = new Point(p.X - _startPoint.X, p.Y - _startPoint.Y);
-                Location = newLocation;
+                System.Drawing.Point p = PointToScreen(e.Location);
+                System.Drawing.Point newLocation = new System.Drawing.Point(p.X - _startPoint.X, p.Y - _startPoint.Y);
 
-                // 同步位置到PetCore
+                // 关键：在拖拽时，UI的位置是主导，需要立即更新BLL
+                this.Location = newLocation;
                 _petCore.Position = newLocation;
             }
         }
 
-        private void picPet_MouseUp(object sender, MouseEventArgs e)
+        private void PetForm_MouseUp(object sender, MouseEventArgs e)
         {
             if (_isDragging)
             {
@@ -341,7 +480,7 @@ namespace Pet.UI
                 bubbleY = this.Location.Y + this.Height + 10; // 如果上面放不下，就放到下面
             }
 
-            _bubbleForm.Location = new Point(bubbleX, bubbleY);
+            _bubbleForm.Location = new System.Drawing.Point(bubbleX, bubbleY);
             _bubbleForm.Show();
             this.BringToFront(); // 确保宠物在气泡前面（可选）
 
@@ -419,7 +558,7 @@ namespace Pet.UI
         /// <summary>
         /// 双击事件处理
         /// </summary>
-        private void picPet_MouseDoubleClick(object sender, MouseEventArgs e)
+        private void PetForm_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             // 执行当前配置的双击策略
             _currentDoubleClickStrategy?.Execute();
