@@ -76,16 +76,7 @@ namespace Pet.BLL
                         }
                     }
 
-                    // 如果没有找到新的吸附图片，使用旧的图片作为备用
-                    if (_attachLeftFrames.Count == 0)
-                    {
-                        LoadFrames(_attachLeftFrames, new[] { 28, 29, 30, 31 }, resourcesPath);
-                    }
 
-                    if (_attachTopFrames.Count == 0)
-                    {
-                        LoadFrames(_attachTopFrames, new[] { 32, 33, 34, 35 }, resourcesPath);
-                    }
 
                     // 创建右侧吸附帧（左右翻转）
                     CreateFlippedFrames();
@@ -103,17 +94,7 @@ namespace Pet.BLL
             }
         }
 
-        private void LoadFrames(List<Image> frameList, int[] frameNumbers, string resourcesPath)
-        {
-            foreach (int frameNum in frameNumbers)
-            {
-                string imagePath = Path.Combine(resourcesPath, $"shime{frameNum}.png");
-                if (File.Exists(imagePath))
-                {
-                    frameList.Add(Image.FromFile(imagePath));
-                }
-            }
-        }
+
 
         /// <summary>
         /// 创建右侧吸附帧（通过翻转左侧帧）

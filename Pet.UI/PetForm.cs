@@ -26,7 +26,7 @@ namespace Pet.UI
             _petCore.Position = this.Location;
             _petCore.ScreenBounds = Screen.PrimaryScreen.Bounds.Size;
 
-            InitializeDoubleClickStrategies(); // 初始化双击策略（必须在菜单之前）
+            InitializeDoubleClickStrategies(); // 初始化双击策略
             InitializeContextMenu(); // 初始化右键菜单
             InitializeBubble(); // 初始化气泡窗体
             InitializeScheduleReminder(); // 初始化日程提醒

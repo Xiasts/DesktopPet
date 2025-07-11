@@ -57,18 +57,7 @@ namespace Pet.BLL
                         }
                     }
                     
-                    // 如果没有找到新的玩耍图片，使用旧的图片作为备用
-                    if (_animationFrames.Count == 0)
-                    {
-                        for (int i = 4; i <= 7; i++)
-                        {
-                            string imagePath = Path.Combine(resourcesPath, $"shime{i}.png");
-                            if (File.Exists(imagePath))
-                            {
-                                _animationFrames.Add(Image.FromFile(imagePath));
-                            }
-                        }
-                    }
+
                 }
 
                 // 如果还是没有找到任何图片，创建默认图片

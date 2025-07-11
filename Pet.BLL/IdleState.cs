@@ -24,7 +24,7 @@ namespace Pet.BLL
             // 随机一个下一次行动的时间，5到12秒
             // Timer的Interval是33ms (约30fps)，所以1秒约30帧
             // 5秒约150帧，12秒约360帧
-            _timeToAct = SharedRandom.Next(150, 360);
+            _timeToAct = SharedRandom.Next(100, 200);
         }
 
         /// <summary>
@@ -84,19 +84,7 @@ namespace Pet.BLL
                         }
                     }
 
-                    // 如果没有找到新的待机图片，尝试加载旧的图片作为备用
-                    if (_animationFrames.Count == 0)
-                    {
-                        for (int i = 1; i <= 8; i++)
-                        {
-                            string imagePath = Path.Combine(resourcesPath, $"shime{i}.png");
-                            if (File.Exists(imagePath))
-                            {
-                                _animationFrames.Add(Image.FromFile(imagePath));
-                                File.AppendAllText(debugFile, $"备用加载: {imagePath}\n");
-                            }
-                        }
-                    }
+
                 }
 
                 // 如果没有找到图片，创建默认占位图片
@@ -185,7 +173,7 @@ namespace Pet.BLL
             }
             catch { }
 
-            // 根据随机数分配概率（移除了走路功能）
+            // 根据随机数分配概率
             if (actionChoice < 50) // 50% 概率吃Cookie
             {
                 core.SetState(new CookieState());
@@ -207,7 +195,7 @@ namespace Pet.BLL
                 }
                 catch { }
             }
-            // 注意：一旦决定了动作并切换状态，这个IdleState实例就会被销毁，
+            // 一旦决定了动作并切换状态，这个IdleState实例就会被销毁，
             // 当宠物再次进入IdleState时，会创建一个新的实例，计时器会自动重置。
         }
     }

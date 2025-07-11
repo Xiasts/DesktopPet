@@ -47,29 +47,7 @@ namespace Pet.BLL
                         }
                     }
 
-                    // 如果没有找到新的拖拽图片，使用旧的图片作为备用
-                    if (_animationFrames.Count == 0)
-                    {
-                        int[] backupFrames = { 9, 10, 11, 12 };
-                        foreach (int frameNum in backupFrames)
-                        {
-                            string imagePath = Path.Combine(resourcesPath, $"shime{frameNum}.png");
-                            if (File.Exists(imagePath))
-                            {
-                                _animationFrames.Add(Image.FromFile(imagePath));
-                            }
-                        }
-                    }
 
-                    // 如果还是没有，至少加载一帧
-                    if (_animationFrames.Count == 0)
-                    {
-                        string imagePath = Path.Combine(resourcesPath, "shime1.png");
-                        if (File.Exists(imagePath))
-                        {
-                            _animationFrames.Add(Image.FromFile(imagePath));
-                        }
-                    }
                 }
 
                 // 如果还是没有找到任何图片，创建默认图片

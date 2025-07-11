@@ -14,13 +14,13 @@ namespace Pet.BLL
 
         public event Action<string, int> OnActionMessage;
 
-        // 和风天气API Key - 您提供的密钥
+        // 和风天气API Key - 
         private const string ApiKey = "6058f1ce22984edd85f41ce40c58d427";
 
-        // 和风天气API Host - 您提供的专用Host
+        // 和风天气API Host - 
         private const string ApiHost = "nk5n8kntw9.re.qweatherapi.com";
 
-        // 默认城市ID - 北京 (用户可以根据需要修改)
+        // 默认城市ID - 
         private const string LocationId = "101120201"; // 青岛
 
         public async void Execute()
@@ -33,7 +33,7 @@ namespace Pet.BLL
                 string weatherInfo = await GetWeatherInfoAsync();
 
                 // 显示天气结果
-                OnActionMessage?.Invoke(weatherInfo, 8000);
+                OnActionMessage?.Invoke(weatherInfo, 10000);
             }
             catch (Exception ex)
             {

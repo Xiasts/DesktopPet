@@ -19,6 +19,11 @@ namespace Pet.UI
         public ChatForm()
         {
             InitializeComponent();
+            // 设置焦点到输入框并选中默认文本
+            this.Load += (s, e) => {
+                txtInput.Focus();
+                txtInput.SelectAll();
+            };
         }
 
         /// <summary>
@@ -110,11 +115,6 @@ namespace Pet.UI
             this.ResumeLayout(false);
             this.PerformLayout();
 
-            // 设置焦点到输入框并选中默认文本
-            this.Load += (s, e) => {
-                txtInput.Focus();
-                txtInput.SelectAll();
-            };
         }
 
         /// <summary>

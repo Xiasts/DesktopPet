@@ -62,18 +62,7 @@ namespace Pet.BLL
                         }
                     }
                     
-                    // 如果没有找到放电图片，使用备用图片
-                    if (_animationFrames.Count == 0)
-                    {
-                        for (int i = 8; i <= 12; i++)
-                        {
-                            string imagePath = Path.Combine(resourcesPath, $"shime{i}.png");
-                            if (File.Exists(imagePath))
-                            {
-                                _animationFrames.Add(Image.FromFile(imagePath));
-                            }
-                        }
-                    }
+
                 }
             }
             catch (Exception)

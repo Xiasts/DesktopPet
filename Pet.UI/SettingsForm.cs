@@ -59,7 +59,7 @@ namespace Pet.UI
             }
             if (dataGridViewSchedules.Columns["IsEnabled"] != null)
             {
-                dataGridViewSchedules.Columns["IsEnabled"].HeaderText = "🔔 状态 (点击切换)";
+                dataGridViewSchedules.Columns["IsEnabled"].HeaderText = "🔔 状态 ";
                 dataGridViewSchedules.Columns["IsEnabled"].Width = 120;
                 // 设置状态列的样式，让它看起来可点击
                 dataGridViewSchedules.Columns["IsEnabled"].DefaultCellStyle.BackColor = Color.FromArgb(240, 248, 255);
